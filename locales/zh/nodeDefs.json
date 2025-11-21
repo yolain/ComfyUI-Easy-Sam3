@@ -1,0 +1,221 @@
+{
+  "easy sam3ModelLoader": {
+    "display_name": "加载 SAM3 模型",
+    "inputs": {
+      "model": {
+        "name": "模型",
+        "tooltip": "选择要加载的 SAM3 模型文件"
+      },
+      "segmentor": {
+        "name": "分割器",
+        "tooltip": "选择图像或视频分割模式"
+      },
+      "device": {
+        "name": "设备",
+        "tooltip": "加载模型的设备"
+      },
+      "precision": {
+        "name": "精度",
+        "tooltip": "推理时的模型精度"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "SAM3 模型"
+      }
+    }
+  },
+  "easy sam3ImageSegmentation": {
+    "display_name": "SAM3 图像分割",
+    "inputs": {
+      "sam3_model": {
+        "name": "SAM3 模型",
+        "tooltip": "从 LoadSam3Model 节点加载的 SAM3 模型"
+      },
+      "images": {
+        "name": "图像",
+        "tooltip": "输入要分割的图像"
+      },
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "要分割的对象的文本描述（例如：'一只猫'、'人'）"
+      },
+      "threshold": {
+        "name": "阈值",
+        "tooltip": "检测的置信度阈值"
+      },
+      "keep_model_loaded": {
+        "name": "保持模型加载",
+        "tooltip": "推理后将模型保留在显存中"
+      },
+      "add_background": {
+        "name": "添加背景",
+        "tooltip": "为分割的图像添加背景颜色"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "遮罩",
+        "tooltip": "分割遮罩"
+      },
+      "1": {
+        "name": "图像",
+        "tooltip": "分割图像"
+      }
+    }
+  },
+  "easy sam3VideoSegmentation": {
+    "display_name": "SAM3 视频分割",
+    "inputs": {
+      "sam3_model": {
+        "name": "SAM3 模型",
+        "tooltip": "从 LoadSam3Model 节点加载的 SAM3 模型（必须是视频模式）"
+      },
+      "session_id": {
+        "name": "会话 ID",
+        "tooltip": "可选的会话 ID，用于恢复之前的跟踪会话"
+      },
+      "video_frames": {
+        "name": "视频帧",
+        "tooltip": "作为图像序列的视频帧"
+      },
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "要跟踪的对象的文本描述（例如：'人'、'汽车'）"
+      },
+      "score_threshold_detection": {
+        "name": "检测分数阈值",
+        "tooltip": "检测的置信度阈值，默认为 0.5"
+      },
+      "new_det_thresh": {
+        "name": "新检测阈值",
+        "tooltip": "将检测添加为新对象的阈值，默认为 0.7"
+      },
+      "object_frame_index": {
+        "name": "对象帧索引",
+        "tooltip": "开始跟踪的对象帧索引"
+      },
+      "object_id": {
+        "name": "对象 ID",
+        "tooltip": "要跟踪的对象 ID（1-100）"
+      },
+      "start_to_propagate": {
+        "name": "开始传播",
+        "tooltip": "传播方向：禁用、双向、前向或后向"
+      },
+      "start_frame_index": {
+        "name": "起始帧索引",
+        "tooltip": "开始传播的帧索引"
+      },
+      "keep_model_loaded": {
+        "name": "保持模型加载",
+        "tooltip": "推理后将模型保留在显存中"
+      },
+      "close_after_propagation": {
+        "name": "传播后关闭",
+        "tooltip": "传播后关闭会话"
+      },
+      "extra_config": {
+        "name": "额外配置",
+        "tooltip": "SAM3 模型的额外配置"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "遮罩",
+        "tooltip": "所有帧的跟踪分割遮罩"
+      },
+      "1": {
+        "name": "会话 ID",
+        "tooltip": "用于恢复跟踪的会话 ID"
+      }
+    }
+  },
+  "easy sam3VideoModelExtraConfig": {
+    "display_name": "SAM3 视频模型额外配置",
+    "inputs": {
+      "assoc_iou_thresh": {
+        "name": "关联 IoU 阈值",
+        "tooltip": "检测到跟踪匹配的 IoU 阈值（宽松阈值，例如 0.1-0.5）"
+      },
+      "trk_assoc_iou_thresh": {
+        "name": "跟踪关联 IoU 阈值",
+        "tooltip": "更严格的 IoU 阈值，用于确定掩码是否不匹配（例如 0.5）"
+      },
+      "hotstart_delay": {
+        "name": "热启动延迟",
+        "tooltip": "延迟 N 帧输出，以移除不匹配/重复的轨迹"
+      },
+      "hotstart_unmatch_thresh": {
+        "name": "热启动不匹配阈值",
+        "tooltip": "在热启动期间移除不匹配此数量帧的轨迹"
+      },
+      "hotstart_dup_thresh": {
+        "name": "热启动重复阈值",
+        "tooltip": "在热启动期间移除重叠的轨迹"
+      },
+      "init_trk_keep_alive": {
+        "name": "初始跟踪保活",
+        "tooltip": "创建新跟踪时的初始保活值"
+      },
+      "max_trk_keep_alive": {
+        "name": "最大跟踪保活",
+        "tooltip": "在没有检测的情况下保持跟踪活动的最大帧数"
+      },
+      "min_trk_keep_alive": {
+        "name": "最小跟踪保活",
+        "tooltip": "最小保活值（负数表示立即移除）"
+      },
+      "suppress_unmatched_within_hotstart": {
+        "name": "热启动内抑制不匹配",
+        "tooltip": "如果为真，仅在热启动期间抑制不匹配的遮罩"
+      },
+      "det_nms_thresh": {
+        "name": "检测 NMS 阈值",
+        "tooltip": "检测 NMS（非极大值抑制）的 IoU 阈值"
+      },
+      "suppress_overlap_occlusion_thresh": {
+        "name": "抑制重叠遮挡阈值",
+        "tooltip": "基于最近遮挡抑制重叠对象的阈值（0.0 禁用）"
+      },
+      "decrease_alive_for_empty_masks": {
+        "name": "空遮罩减少保活",
+        "tooltip": "为空掩码（无有效遮罩）减少保活计数器"
+      },
+      "enable_o2o_matching": {
+        "name": "启用一对一匹配",
+        "tooltip": "为现有掩码启用一对一匈牙利匹配"
+      },
+      "suppress_det_at_boundary": {
+        "name": "边界处抑制检测",
+        "tooltip": "抑制靠近图像边界的检测"
+      },
+      "fill_hole_area": {
+        "name": "填充孔洞面积",
+        "tooltip": "填充遮罩中小于此面积的孔洞（以像素为单位）"
+      },
+      "max_num_objects": {
+        "name": "最大对象数量",
+        "tooltip": "要跟踪的最大对象数（-1 表示无限制）"
+      },
+      "recondition_every_nth_frame": {
+        "name": "每 N 帧重新调整",
+        "tooltip": "每 N 帧重新调整跟踪（-1 禁用）"
+      },
+      "enable_masklet_confirmation": {
+        "name": "启用掩码确认",
+        "tooltip": "启用掩码确认以抑制未确认的轨迹"
+      },
+      "masklet_confirm_frames": {
+        "name": "掩码确认帧数",
+        "tooltip": "掩码确认所需的帧数"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "额外配置",
+        "tooltip": "SAM3 模型配置字典"
+      }
+    }
+  }
+}

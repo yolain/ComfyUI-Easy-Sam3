@@ -1,0 +1,11 @@
+__pycache__
+.DS_Store
+*.cache
+*.ini
+*.bak
+.vscode/
+.idea/
+.github/instructions/**
+.github/prompt/**
+mmb-preset.custom.txt
+node.tar.gz

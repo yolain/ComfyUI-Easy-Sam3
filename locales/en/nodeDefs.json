@@ -1,0 +1,221 @@
+{
+  "easy sam3ModelLoader": {
+    "display_name": "Load SAM3 Model",
+    "inputs": {
+      "model": {
+        "name": "model",
+        "tooltip": "Select SAM3 model file to load"
+      },
+      "segmentor": {
+        "name": "segmentor",
+        "tooltip": "Choose between image or video segmentation mode"
+      },
+      "device": {
+        "name": "device",
+        "tooltip": "Device to load the model on"
+      },
+      "precision": {
+        "name": "precision",
+        "tooltip": "Model precision for inference"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "sam3_model"
+      }
+    }
+  },
+  "easy sam3ImageSegmentation": {
+    "display_name": "Sam3 Image Segmentation",
+    "inputs": {
+      "sam3_model": {
+        "name": "sam3_model",
+        "tooltip": "SAM3 model loaded from LoadSam3Model node"
+      },
+      "images": {
+        "name": "images",
+        "tooltip": "Input image or images to segment"
+      },
+      "prompt": {
+        "name": "prompt",
+        "tooltip": "Text description of objects to segment (e.g., 'a cat', 'person')"
+      },
+      "threshold": {
+        "name": "threshold",
+        "tooltip": "Confidence threshold for detections"
+      },
+      "keep_model_loaded": {
+        "name": "keep_model_loaded",
+        "tooltip": "Keep model in VRAM after inference"
+      },
+      "add_background": {
+        "name": "add_background",
+        "tooltip": "Add background color to segmented images"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "masks",
+        "tooltip": "Segmentation masks"
+      },
+      "1": {
+        "name": "images",
+        "tooltip": "Segmentation images"
+      }
+    }
+  },
+  "easy sam3VideoSegmentation": {
+    "display_name": "SAM3 Video Segmentation",
+    "inputs": {
+      "sam3_model": {
+        "name": "sam3_model",
+        "tooltip": "SAM3 model loaded from LoadSam3Model node (must be video mode)"
+      },
+      "session_id": {
+        "name": "session_id",
+        "tooltip": "Optional session ID to resume a previous tracking session"
+      },
+      "video_frames": {
+        "name": "video_frames",
+        "tooltip": "Video frames as image sequence"
+      },
+      "prompt": {
+        "name": "prompt",
+        "tooltip": "Text description of objects to track (e.g., 'person', 'car')"
+      },
+      "score_threshold_detection": {
+        "name": "score_threshold_detection",
+        "tooltip": "Confidence threshold for detections, default is 0.5"
+      },
+      "new_det_thresh": {
+        "name": "new_det_thresh",
+        "tooltip": "Threshold for a detection to be added as a new object, default is 0.7"
+      },
+      "object_frame_index": {
+        "name": "object_frame_index",
+        "tooltip": "Object Frame index to start tracking from"
+      },
+      "object_id": {
+        "name": "object_id",
+        "tooltip": "Object ID to track (1-100)"
+      },
+      "start_to_propagate": {
+        "name": "start_to_propagate",
+        "tooltip": "Propagation direction: disabled, both, forward, or backward"
+      },
+      "start_frame_index": {
+        "name": "start_frame_index",
+        "tooltip": "Frame index to start propagation from"
+      },
+      "keep_model_loaded": {
+        "name": "keep_model_loaded",
+        "tooltip": "Keep model in VRAM after inference"
+      },
+      "close_after_propagation": {
+        "name": "close_after_propagation",
+        "tooltip": "Close the session after propagation"
+      },
+      "extra_config": {
+        "name": "extra_config",
+        "tooltip": "Extra configuration for the SAM3 model"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "masks",
+        "tooltip": "Tracked segmentation masks for all frames"
+      },
+      "1": {
+        "name": "session_id",
+        "tooltip": "Session ID for resuming tracking"
+      }
+    }
+  },
+  "easy sam3VideoModelExtraConfig": {
+    "display_name": "SAM3 Video Model Extra Config",
+    "inputs": {
+      "assoc_iou_thresh": {
+        "name": "assoc_iou_thresh",
+        "tooltip": "IoU threshold for detection-to-track matching (loose threshold, e.g., 0.1-0.5)"
+      },
+      "trk_assoc_iou_thresh": {
+        "name": "trk_assoc_iou_thresh",
+        "tooltip": "Stricter IoU threshold to determine if a masklet is unmatched (e.g., 0.5)"
+      },
+      "hotstart_delay": {
+        "name": "hotstart_delay",
+        "tooltip": "Hold off outputs for N frames to remove unmatched/duplicate tracklets"
+      },
+      "hotstart_unmatch_thresh": {
+        "name": "hotstart_unmatch_thresh",
+        "tooltip": "Remove tracklets unmatched for this many frames during hotstart"
+      },
+      "hotstart_dup_thresh": {
+        "name": "hotstart_dup_thresh",
+        "tooltip": "Remove overlapping tracklets during hotstart"
+      },
+      "init_trk_keep_alive": {
+        "name": "init_trk_keep_alive",
+        "tooltip": "Initial keep-alive value when a new track is created"
+      },
+      "max_trk_keep_alive": {
+        "name": "max_trk_keep_alive",
+        "tooltip": "Maximum frames to keep a track alive without detections"
+      },
+      "min_trk_keep_alive": {
+        "name": "min_trk_keep_alive",
+        "tooltip": "Minimum keep-alive value (negative means immediate removal)"
+      },
+      "suppress_unmatched_within_hotstart": {
+        "name": "suppress_unmatched_within_hotstart",
+        "tooltip": "If True, only suppress unmatched masks within hotstart period"
+      },
+      "det_nms_thresh": {
+        "name": "det_nms_thresh",
+        "tooltip": "IoU threshold for detection NMS (Non-Maximum Suppression)"
+      },
+      "suppress_overlap_occlusion_thresh": {
+        "name": "suppress_overlap_occlusion_thresh",
+        "tooltip": "Threshold for suppressing overlapping objects based on recent occlusion (0.0 to disable)"
+      },
+      "decrease_alive_for_empty_masks": {
+        "name": "decrease_alive_for_empty_masks",
+        "tooltip": "Decrease keep-alive counter for empty masklets (no valid masks)"
+      },
+      "enable_o2o_matching": {
+        "name": "enable_o2o_matching",
+        "tooltip": "Enable one-to-one Hungarian matching for existing masklets"
+      },
+      "suppress_det_at_boundary": {
+        "name": "suppress_det_at_boundary",
+        "tooltip": "Suppress detections close to image boundaries"
+      },
+      "fill_hole_area": {
+        "name": "fill_hole_area",
+        "tooltip": "Fill holes in masks smaller than this area (in pixels)"
+      },
+      "max_num_objects": {
+        "name": "max_num_objects",
+        "tooltip": "Maximum number of objects to track (-1 for unlimited)"
+      },
+      "recondition_every_nth_frame": {
+        "name": "recondition_every_nth_frame",
+        "tooltip": "Recondition tracking every N frames (-1 to disable)"
+      },
+      "enable_masklet_confirmation": {
+        "name": "enable_masklet_confirmation",
+        "tooltip": "Enable masklet confirmation to suppress unconfirmed tracklets"
+      },
+      "masklet_confirm_frames": {
+        "name": "masklet_confirm_frames",
+        "tooltip": "Frames needed for masklet confirmation"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "extra_config",
+        "tooltip": "SAM3 model configuration dictionary"
+      }
+    }
+  }
+}
