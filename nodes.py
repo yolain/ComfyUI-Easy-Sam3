@@ -13,7 +13,7 @@ from PIL import Image
 from typing import Tuple, Any
 from comfy_api.latest import ComfyExtension, io, ui
 from .sam3.logger import get_logger
-from .utils import tensor_to_pil, pil_to_tensor, masks_to_tensor, join_image_with_alpha, parse_points, parse_bbox, visualize_masks_on_image
+from .utils import tensor_to_pil, pil_to_tensor, masks_to_tensor, join_image_with_alpha, parse_points, parse_bbox, draw_visualize_image
 
 logger = get_logger(__name__)
 
@@ -971,6 +971,14 @@ class Sam3Visualization(io.ComfyNode):
                     step=1,
                     tooltip="Width of the mask border stroke"
                 ),
+                io.Int.Input(
+                    "font_size",
+                    default=24,
+                    min=8,
+                    max=100,
+                    step=1,
+                    tooltip="Font size for confidence score text"
+                )
             ],
             outputs=[
                 io.Image.Output(
@@ -981,7 +989,7 @@ class Sam3Visualization(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, image, obj_masks, alpha=0.5, stroke_width=5, scores=None) -> io.NodeOutput:
+    def execute(cls, image, obj_masks, alpha=0.5, stroke_width=5, font_size=24, scores=None) -> io.NodeOutput:
         """
         Execute visualization of masks on images.
         
@@ -1008,12 +1016,14 @@ class Sam3Visualization(io.ComfyNode):
             raw_masks = obj_masks[idx] if obj_masks is not None else None
             # Create visualization
             # Note: If masks are None, visualize_masks_on_image will still draw boxes and scores
-            vis_image = visualize_masks_on_image(
+            vis_image = draw_visualize_image(
                 pil_image,
                 raw_masks,
                 scores,
+                None,
                 alpha=alpha,
-                stroke_width=stroke_width
+                stroke_width=stroke_width,
+                font_size=font_size
             )
 
             # Convert back to tensor

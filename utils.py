@@ -5,6 +5,7 @@ Utility functions for tensor and PIL image conversions.
 import numpy as np
 import torch
 import json
+import comfy.utils
 from PIL import Image
 from typing import List, Union, Optional
 
@@ -139,21 +140,8 @@ def masks_to_tensor(masks: Union[torch.Tensor, Image.Image, List, np.ndarray]) -
 
     return masks
 
-# code based on  https://github.com/PozzettiAndrea/ComfyUI-SAM3/blob/main/nodes/utils.py
-def visualize_masks_on_image(image, masks, scores=None, alpha=0.5, stroke_width=5):
-    """
-    Create visualization of masks overlaid on image
+def draw_visualize_image(image, masks, scores=None, bboxs=None, alpha=0.5, stroke_width=5, font_size=24):
 
-    Args:
-        image: PIL Image or numpy array or torch.Tensor
-        masks: torch.Tensor [N, H, W] binary masks
-        scores: Optional torch.Tensor [N] confidence scores
-        alpha: Transparency of mask overlay
-        stroke_width: Width of the stroke border around masks (default: 5)
-
-    Returns:
-        PIL Image with visualization
-    """
     if isinstance(image, torch.Tensor):
         # tensor_to_pil returns a list, get the first image
         image = tensor_to_pil(image)[0]
@@ -169,13 +157,23 @@ def visualize_masks_on_image(image, masks, scores=None, alpha=0.5, stroke_width=
     else:
         masks_np = masks
 
-    # Create colored overlay
-    np.random.seed(42)  # Consistent colors
-    overlay = img_np.copy()
-
     from PIL import ImageDraw, ImageFont
     from scipy import ndimage
+    try:
+        font = ImageFont.load_default().font_variant(size=font_size)
+    except:
+        font = ImageFont.load_default()
 
+    # Create colored overlay
+    np.random.seed(42)
+    overlay = img_np.copy()
+    
+    # Store text drawing info for later
+    text_info_list = []
+
+    num_masks = len(masks_np)
+    pbar = comfy.utils.ProgressBar(num_masks)
+    processed_masks = 0
     for i, mask in enumerate(masks_np):
         # Squeeze extra dimensions (masks may be [1, H, W] or [H, W])
         while mask.ndim > 2:
@@ -190,7 +188,7 @@ def visualize_masks_on_image(image, masks, scores=None, alpha=0.5, stroke_width=
 
         # Random color for this mask
         color = np.random.rand(3)
-        
+
         # Create darker stroke color (0.4x of original color for darker effect)
         stroke_color = color * 0.4
 
@@ -217,40 +215,17 @@ def visualize_masks_on_image(image, masks, scores=None, alpha=0.5, stroke_width=
                 overlay[:, :, c]
             )
 
-    # Convert overlay to PIL image once after all masks are applied
-    result = Image.fromarray((overlay * 255).astype(np.uint8))
-    draw = ImageDraw.Draw(result)
-
-    # Reset random seed for consistent colors
-    np.random.seed(42)
-
-    # Draw text labels for each mask
-    for i, mask in enumerate(masks_np):
-        # Squeeze extra dimensions
-        while mask.ndim > 2:
-            mask = mask.squeeze(0)
-
-        # Resize mask if needed (same as above)
-        if mask.shape != img_np.shape[:2]:
-            from PIL import Image as PILImage
-            mask_pil = PILImage.fromarray((mask * 255).astype(np.uint8))
-            mask_pil = mask_pil.resize((img_np.shape[1], img_np.shape[0]), PILImage.NEAREST)
-            mask = np.array(mask_pil).astype(np.float32) / 255.0
-
-        # Get the same color as used for the mask
-        color = np.random.rand(3)
-
         # Find the center x and top y of the mask for text placement
         mask_coords = np.argwhere(mask > 0.5)
         if len(mask_coords) > 0:
             # Calculate x center and y top
             y_top = int(mask_coords[:, 0].min())
             x_center = int(mask_coords[:, 1].mean())
-            
-            # Convert color to int tuple for text
-            color_int = tuple((color * 255).astype(int).tolist())
-            
-            # Draw text with score if available
+
+            # Convert stroke_color to int tuple for background box
+            stroke_color_int = tuple((stroke_color * 255).astype(int).tolist())
+
+            # Prepare text with score if available
             if scores is not None:
                 try:
                     # Handle different score formats
@@ -272,10 +247,42 @@ def visualize_masks_on_image(image, masks, scores=None, alpha=0.5, stroke_width=
                     print(f"Error getting score {i}: {e}")
             else:
                 text = f"id:{i}"
-            
-            draw.text((x_center, max(0, y_top - 40)), text, fill=color_int)
+
+            # Store text info for drawing later
+            text_info_list.append({
+                'text': text,
+                'position': (x_center, max(0, y_top - font_size)),
+                'bg_color': stroke_color_int
+            })
+
+        # Update progress bar
+        processed_masks += 1
+        pbar.update_absolute(processed_masks, num_masks)
+    
+    # Convert overlay to PIL image once after all masks are processed
+    result = Image.fromarray((overlay * 255).astype(np.uint8))
+    draw = ImageDraw.Draw(result)
+    
+    # Draw all text labels
+    for text_info in text_info_list:
+        text = text_info['text']
+        position = text_info['position']
+        bg_color = text_info['bg_color']
+        
+        # Get text bounding box
+        bbox = draw.textbbox(position, text, font=font)
+        # Draw background box with stroke_color
+        padding = 8
+        draw.rectangle(
+            [(bbox[0] - padding, bbox[1] - padding), 
+             (bbox[2] + padding, bbox[3] + padding)],
+            fill=bg_color
+        )
+        # Draw text in white
+        draw.text(position, text, fill=(255, 255, 255), font=font)
 
     return result
+
 
 def resize_mask(mask, shape):
     return torch.nn.functional.interpolate(mask.reshape((-1, 1, mask.shape[-2], mask.shape[-1])), size=(shape[0], shape[1]), mode="bilinear").squeeze(1)

@@ -284,6 +284,10 @@
       "stroke_width": {
         "name": "stroke_width",
         "tooltip": "遮罩边框的宽度（像素）（1-100，默认：5）"
+      },
+      "font_size": {
+        "name": "字体大小",
+        "tooltip": "置信度分数字体大小（8-100，默认：24）"
       }
     },
     "outputs": {
