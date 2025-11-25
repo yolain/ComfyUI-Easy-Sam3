@@ -709,10 +709,12 @@ class Sam3VideoSegmentation(io.ComfyNode):
 
             object_outputs = {
                 "obj_ids":None,
-                "obj_masks":None
+                "obj_masks":[]
             }
             # Use dictionary to store object_masks by frame_idx to handle non-sequential frame processing
             object_masks_dict = {}
+            # Store obj_masks for each frame in a dictionary
+            obj_masks_by_frame = {}
 
             for response in video_predictor.handle_stream_request(
                 request=dict(
@@ -731,7 +733,8 @@ class Sam3VideoSegmentation(io.ComfyNode):
                 if outputs:
                     if "out_binary_masks" in outputs:
                         mask = outputs["out_binary_masks"]
-                        object_outputs["obj_masks"] = mask
+                        # Store mask for this frame
+                        obj_masks_by_frame[frame_idx] = mask
                         if mask.shape[0] > 0:
                             # Convert mask to tensor and store by frame_idx
                             mask_tensor = torch.from_numpy(mask).float()
@@ -767,6 +770,18 @@ class Sam3VideoSegmentation(io.ComfyNode):
             if not keep_model_loaded and close_after_propagation:
                 video_predictor.shutdown()
 
+        # Convert obj_masks_by_frame to ordered list matching frame indices
+        if len(obj_masks_by_frame) > 0:
+            # Create ordered list of obj_masks by frame index
+            ordered_obj_masks = []
+            for frame_idx in range(B):
+                if frame_idx in obj_masks_by_frame:
+                    ordered_obj_masks.append(obj_masks_by_frame[frame_idx])
+                else:
+                    # Frame not processed, add empty mask array
+                    ordered_obj_masks.append(np.zeros((1, H, W), dtype=np.float32))
+            object_outputs["obj_masks"] = ordered_obj_masks
+        
         # Convert object_masks_dict to ordered list and pad to have same number of objects across all frames
         if len(object_masks_dict) > 0:
             # Create ordered list of masks by frame index
@@ -1098,6 +1113,181 @@ class Sam3Visualization(io.ComfyNode):
         
         # Return with preview UI
         return io.NodeOutput(output_images,)
+
+class Sam3GetObjectIds(io.ComfyNode):
+    """Get all object IDs from Sam3VideoSegmentation output."""
+
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="easy sam3GetObjectIds",
+            display_name="SAM3 Get Object IDs",
+            category="EasyUse/Sam3",
+            description="Get all object IDs and count from Sam3VideoSegmentation objects output",
+            inputs=[
+                io.Custom(io_type="EASY_SAM3_OBJECTS_OUTPUT").Input(
+                    "objects",
+                    display_name="objects",
+                    tooltip="Objects output from Sam3VideoSegmentation node"
+                ),
+            ],
+            outputs=[
+                io.Int.Output(
+                    "obj_ids",
+                    display_name="obj_ids",
+                    tooltip="Comma-separated list of all object IDs"
+                ),
+                io.Int.Output(
+                    "count",
+                    display_name="count",
+                    tooltip="Total number of objects"
+                ),
+            ]
+        )
+
+    @classmethod
+    def execute(cls, objects) -> io.NodeOutput:
+        """
+        Get all object IDs from objects output.
+        
+        Args:
+            objects: Dictionary containing:
+                - 'obj_ids': numpy array of object IDs [num_objects]
+                - 'obj_masks': list of numpy arrays for each frame
+            
+        Returns:
+            obj_ids_str: Comma-separated string of all object IDs
+            count: Total number of objects
+        """
+        if objects is None:
+            raise ValueError("Objects input cannot be None")
+        
+        obj_ids = objects.get("obj_ids", None)
+        
+        if obj_ids is None:
+            raise ValueError("Objects must contain 'obj_ids' key")
+        
+        # Convert obj_ids to numpy array if needed
+        if isinstance(obj_ids, torch.Tensor):
+            obj_ids = obj_ids.cpu().numpy()
+        
+        # Get count
+        count = len(obj_ids)
+        
+        # Convert to comma-separated string
+        obj_ids = [int(obj_id) for obj_id in obj_ids]
+        
+        return io.NodeOutput(obj_ids, count)
+
+
+class Sam3GetObjectMask(io.ComfyNode):
+    """Extract mask for a specific object ID from Sam3VideoSegmentation output."""
+
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="easy sam3GetObjectMask",
+            display_name="SAM3 Get Object Mask",
+            category="EasyUse/Sam3",
+            description="Extract mask for a specific object ID from Sam3VideoSegmentation objects output",
+            inputs=[
+                io.Custom(io_type="EASY_SAM3_OBJECTS_OUTPUT").Input(
+                    "objects",
+                    display_name="objects",
+                    tooltip="Objects output from Sam3VideoSegmentation node"
+                ),
+                io.Int.Input(
+                    "obj_id",
+                    default=1,
+                    min=0,
+                    max=1000,
+                    tooltip="Object ID to extract mask for"
+                ),
+            ],
+            outputs=[
+                io.Mask.Output(
+                    "mask",
+                    display_name="mask",
+                    tooltip="Extracted mask for the specified object ID"
+                ),
+            ]
+        )
+
+    @classmethod
+    def execute(cls, objects, obj_id) -> io.NodeOutput:
+        """
+        Extract mask for a specific object ID from objects output.
+        
+        Args:
+            objects: Dictionary containing:
+                - 'obj_ids': numpy array of object IDs [num_objects]
+                - 'obj_masks': list of numpy arrays, each [num_objects, H, W] for each frame
+            obj_id: Object ID to extract mask for
+            
+        Returns:
+            Batch of masks tensor [num_frames, H, W] for the specified object ID
+        """
+        if objects is None:
+            raise ValueError("Objects input cannot be None")
+        
+        obj_ids = objects.get("obj_ids", None)
+        obj_masks = objects.get("obj_masks", None)
+        
+        if obj_ids is None or obj_masks is None:
+            raise ValueError("Objects must contain both 'obj_ids' and 'obj_masks' keys")
+        
+        # Convert obj_ids to numpy array if needed
+        if isinstance(obj_ids, torch.Tensor):
+            obj_ids = obj_ids.cpu().numpy()
+        
+        # Find the index of the requested obj_id
+        try:
+            obj_index = np.nonzero(obj_ids == obj_id)[0]
+            
+            if len(obj_index) == 0:
+                logger.warning(f"Object ID {obj_id} not found in objects. Available IDs: {obj_ids}")
+                # Return empty masks for all frames
+                if isinstance(obj_masks, list) and len(obj_masks) > 0:
+                    first_frame = obj_masks[0]
+                    if isinstance(first_frame, np.ndarray) and len(first_frame.shape) >= 2:
+                        H, W = first_frame.shape[-2], first_frame.shape[-1]
+                        num_frames = len(obj_masks)
+                        empty_masks = torch.zeros((num_frames, H, W), dtype=torch.float32)
+                    else:
+                        empty_masks = torch.zeros((1, 1, 1), dtype=torch.float32)
+                else:
+                    empty_masks = torch.zeros((1, 1, 1), dtype=torch.float32)
+                return io.NodeOutput(empty_masks)
+            
+            obj_index = obj_index[0]
+            
+            # Extract masks for this object across all frames
+            extracted_masks = []
+            for frame_masks in obj_masks:
+                # frame_masks is [num_objects, H, W]
+                if isinstance(frame_masks, torch.Tensor):
+                    frame_masks = frame_masks.cpu().numpy()
+                
+                # Extract the mask for this object in this frame
+                obj_mask = frame_masks[obj_index]
+                
+                # Convert boolean mask to float
+                if obj_mask.dtype == bool:
+                    obj_mask = obj_mask.astype(np.float32)
+                
+                extracted_masks.append(obj_mask)
+            
+            # Stack all frames: [num_frames, H, W]
+            masks_array = np.stack(extracted_masks, axis=0)
+            mask_tensor = torch.from_numpy(masks_array).float()
+            
+            logger.info(f"Extracted masks for object ID {obj_id} with shape {mask_tensor.shape} ({len(obj_masks)} frames)")
+            
+            return io.NodeOutput(mask_tensor)
+            
+        except Exception as e:
+            logger.error(f"Error extracting object mask: {str(e)}")
+            raise ValueError(f"Error extracting object mask for ID {obj_id}: {str(e)}")
 
 
 class StringToBBox(io.ComfyNode):

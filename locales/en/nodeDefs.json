@@ -289,6 +289,44 @@
       }
     }
   },
+  "easy sam3GetObjectIds": {
+    "display_name": "SAM3 Get Object IDs",
+    "inputs": {
+      "objects": {
+        "name": "objects",
+        "tooltip": "Objects output from Sam3VideoSegmentation node"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "obj_ids",
+        "tooltip": "Comma-separated list of all object IDs"
+      },
+      "1": {
+        "name": "count",
+        "tooltip": "Total number of objects"
+      }
+    }
+  },
+  "easy sam3GetObjectMask": {
+    "display_name": "SAM3 Get Object Mask",
+    "inputs": {
+      "objects": {
+        "name": "objects",
+        "tooltip": "Objects output from Sam3VideoSegmentation node"
+      },
+      "obj_id": {
+        "name": "obj_id",
+        "tooltip": "Object ID to extract mask for (0-1000)"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "mask",
+        "tooltip": "Extracted mask for the specified object ID [B, H, W] format"
+      }
+    }
+  },
   "easy stringToBBox": {
     "display_name": "String to BBox",
     "inputs": {

@@ -297,6 +297,44 @@
       }
     }
   },
+  "easy sam3GetObjectIds": {
+    "display_name": "SAM3 获取对象 ID",
+    "inputs": {
+      "objects": {
+        "name": "对象",
+        "tooltip": "来自 SAM3 视频分割节点的对象输出"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "对象 ID",
+        "tooltip": "所有对象 ID 的逗号分隔列表"
+      },
+      "1": {
+        "name": "数量",
+        "tooltip": "对象总数"
+      }
+    }
+  },
+  "easy sam3GetObjectMask": {
+    "display_name": "SAM3 获取对象遮罩",
+    "inputs": {
+      "objects": {
+        "name": "对象",
+        "tooltip": "来自 SAM3 视频分割节点的对象输出"
+      },
+      "obj_id": {
+        "name": "对象 ID",
+        "tooltip": "要提取遮罩的对象 ID（0-1000）"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "遮罩",
+        "tooltip": "指定对象 ID 的提取遮罩 [B, H, W] 格式"
+      }
+    }
+  },
   "easy stringToBBox": {
     "display_name": "字符串转边界框",
     "inputs": {

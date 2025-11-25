@@ -91,8 +91,49 @@ Track and segment objects across video frames with advanced prompting options.
 - `masks`: Tracked segmentation masks for all frames [B, H, W] format with merged object masks per frame
 - `session_id`: Session ID string for resuming tracking in subsequent calls
 - `objects`: Object tracking information dictionary containing `obj_ids` and `obj_masks` arrays
+- `obj_masks`: Individual object masks per frame [B, N, H, W] format where N is the maximum number of objects tracked
 
-### 4. SAM3 Video Model Extra Config
+### 4. SAM3 Get Object IDs
+Get all object IDs and count from SAM3 Video Segmentation output.
+
+**Inputs:**
+- `objects`: Objects output from SAM3 Video Segmentation node (contains `obj_ids` and `obj_masks`)
+
+**Outputs:**
+- `obj_ids`: List of all object IDs that were tracked in the video
+- `count`: Total number of objects tracked
+
+**Use Case:**
+This node is essential for understanding what objects were detected and tracked in your video. It helps you:
+- Discover all object IDs available for extraction
+- Determine how many objects were successfully tracked
+- Plan downstream processing based on the number of tracked objects
+- Debug tracking issues by verifying which objects were detected
+
+**Example:**
+If your video tracked 3 objects, this node will output:
+- `obj_ids`: [0, 1, 2]
+- `count`: 3
+
+You can then use these IDs with the SAM3 Get Object Mask node to extract individual object masks.
+
+### 6. SAM3 Get Object Mask
+Extract mask for a specific object ID from SAM3 Video Segmentation output.
+
+**Inputs:**
+- `objects`: Objects output from SAM3 Video Segmentation node (contains `obj_ids` and `obj_masks`)
+- `obj_id`: Object ID to extract mask for (min: 0, max: 1000, default: 1)
+
+**Outputs:**
+- `mask`: Extracted mask tensor for the specified object ID [B, H, W] format. Returns empty mask if object ID not found
+
+**Use Case:**
+This node is useful when you have multiple tracked objects in a video and want to isolate a specific object's mask for further processing. For example:
+- Extract a person's mask (object_id=1) from a video with multiple people
+- Process different objects separately in your workflow
+- Apply different effects or transformations to specific tracked objects
+
+### 7. SAM3 Video Model Extra Config
 Configure advanced parameters for video segmentation to fine-tune tracking behavior.
 
 **Parameters:**
@@ -117,7 +158,7 @@ Configure advanced parameters for video segmentation to fine-tune tracking behav
 **Output:**
 - `extra_config`: Configuration dictionary for Video Segmentation node
 
-### 5. Sam3 Visualization
+### 8. Sam3 Visualization
 Visualize segmentation masks with bounding boxes and confidence scores overlaid on images.
 
 **Inputs:**
@@ -180,7 +221,14 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## Changelog
 
+### v1.0.1
+
+- Added `easy sam3GetObjectIds` node to get object ID list
+- Added `easy sam3GetObjectMask` node to extract mask for specific object ID
+- Fixed object masks not aligned with frames when `start_frame_index` is not 0
+
 ### v1.0.0
+
 - Initial release
 - Image segmentation with text prompts
 - Video tracking and segmentation

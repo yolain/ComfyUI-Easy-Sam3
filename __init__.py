@@ -10,6 +10,8 @@ class Sam3Extension(ComfyExtension):
             Sam3VideoSegmentation,
             Sam3VideoModelExtraConfig,
             Sam3Visualization,
+            Sam3GetObjectIds,
+            Sam3GetObjectMask,
             StringToBBox
         ]
 
