@@ -531,11 +531,11 @@ def _load_checkpoint(model, checkpoint_path):
             }
         )
     missing_keys, _ = model.load_state_dict(sam3_image_ckpt, strict=False)
-    if len(missing_keys) > 0:
-        print(
-            f"loaded {checkpoint_path} and found "
-            f"missing and/or unexpected keys:\n{missing_keys=}"
-        )
+    # if len(missing_keys) > 0:
+    #     print(
+    #         f"loaded {checkpoint_path} and found "
+    #         f"missing and/or unexpected keys:\n{missing_keys=}"
+    #     )
 
 
 def _setup_device_and_mode(model, device, eval_mode):
@@ -645,7 +645,7 @@ def build_sam3_video_model(
     bpe_path: Optional[str] = None,
     has_presence_token: bool = True,
     geo_encoder_use_img_cross_attn: bool = True,
-    strict_state_dict_loading: bool = True,
+    strict_state_dict_loading: bool = False,
     apply_temporal_disambiguation: bool = True,
     device="cuda" if torch.cuda.is_available() else "cpu",
     compile=False,
@@ -763,16 +763,20 @@ def build_sam3_video_model(
     if load_from_HF and checkpoint_path is None:
         checkpoint_path = download_ckpt_from_hf()
     if checkpoint_path is not None:
-        with g_pathmgr.open(checkpoint_path, "rb") as f:
-            ckpt = torch.load(f, map_location="cpu", weights_only=True)
+        if checkpoint_path.endswith(".safetensors"):
+            from safetensors.torch import load_file
+            ckpt = load_file(checkpoint_path)
+        else:
+            with g_pathmgr.open(checkpoint_path, "rb") as f:
+                ckpt = torch.load(f, map_location="cpu", weights_only=True)
         if "model" in ckpt and isinstance(ckpt["model"], dict):
             ckpt = ckpt["model"]
 
         missing_keys, unexpected_keys = model.load_state_dict(
-            ckpt, strict=strict_state_dict_loading
+            ckpt, strict=False
         )
-        if missing_keys:
-            print(f"Missing keys: {missing_keys}")
+        # if missing_keys:
+        #     print(f"Missing keys: {missing_keys}")
         if unexpected_keys:
             print(f"Unexpected keys: {unexpected_keys}")
 
