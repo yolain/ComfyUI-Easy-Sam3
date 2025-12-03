@@ -16,6 +16,8 @@ from contextlib import nullcontext
 from PIL import Image
 from typing import Tuple, Any
 from comfy_api.latest import ComfyExtension, io, ui
+from comfy_api.latest._io import FolderType
+
 from comfy_execution.graph import ExecutionBlocker
 from .sam3.logger import get_logger
 from .utils import tensor_to_pil, pil_to_tensor, masks_to_tensor, join_image_with_alpha, parse_points, parse_bbox, draw_visualize_image
@@ -1524,7 +1526,7 @@ class FramesEditor(io.ComfyNode):
             preview = ui.ImageSaveHelper.save_images(
                 preview_images,
                 filename_prefix="ComfyUI_temp_" + ''.join(random.choice("abcdefghijklmnopqrstupvxyz") for _ in range(5)),
-                folder_type=ui.FolderType.temp,
+                folder_type=FolderType.temp,
                 cls=cls,
                 compress_level=4,
             )
