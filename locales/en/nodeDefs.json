@@ -317,7 +317,7 @@
       },
       "obj_id": {
         "name": "obj_id",
-        "tooltip": "Object ID to extract mask for (0-1000)"
+        "tooltip": "Object Index to extract mask for (0-1000)"
       }
     },
     "outputs": {

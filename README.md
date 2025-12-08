@@ -101,7 +101,7 @@ Get all object IDs and count from SAM3 Video Segmentation output.
 - `objects`: Objects output from SAM3 Video Segmentation node (contains `obj_ids` and `obj_masks`)
 
 **Outputs:**
-- `obj_ids`: List of all object IDs that were tracked in the video
+- `object_ids`: List of all object IDs that were tracked in the video
 - `count`: Total number of objects tracked
 
 **Use Case:**
@@ -123,7 +123,7 @@ Extract mask for a specific object ID from SAM3 Video Segmentation output.
 
 **Inputs:**
 - `objects`: Objects output from SAM3 Video Segmentation node (contains `obj_ids` and `obj_masks`)
-- `obj_id`: Object ID to extract mask for (min: 0, max: 1000, default: 1)
+- `obj_id`: Object Index to extract mask for (min: 0, max: 1000, default: 0)
 
 **Outputs:**
 - `mask`: Extracted mask tensor for the specified object ID [B, H, W] format. Returns empty mask if object ID not found

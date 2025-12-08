@@ -324,14 +324,14 @@
         "tooltip": "来自 SAM3 视频分割节点的对象输出"
       },
       "obj_id": {
-        "name": "对象 ID",
-        "tooltip": "要提取遮罩的对象 ID（0-1000）"
+        "name": "对象索引ID",
+        "tooltip": "要提取遮罩的对象索引ID（0-1000）"
       }
     },
     "outputs": {
       "0": {
         "name": "遮罩",
-        "tooltip": "指定对象 ID 的提取遮罩 [B, H, W] 格式"
+        "tooltip": "指定对象索引ID 的提取遮罩 [B, H, W] 格式"
       }
     }
   },
