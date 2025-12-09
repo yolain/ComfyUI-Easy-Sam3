@@ -255,8 +255,9 @@
 
 ## 模型下载
 
-从官方仓库下载 SAM3 模型权重：
+从仓库下载 SAM3 模型权重：
 - [SAM3 模型](https://huggingface.co/facebook/sam3)
+- [SAM3 FP16 模型](https://huggingface.co/yolain/sam3-safetensors/blob/main/sam3-fp16.safetensors)
 
 将下载的模型放置在：`ComfyUI/models/sam3/`
 
@@ -290,6 +291,14 @@
 欢迎贡献！请随时提交问题或拉取请求。
 
 ## 更新日志
+
+### v1.0.4
+
+- 修复和 `wanvideowrapper` 节点同时使用时存在 `Unexpected floating ScalarType` 报错的情况
+
+### v1.0.3
+
+- 将 `sam3GetObjectMask` 节点的 `obj_id` 重新定义为对象索引ID，方便与可视化中的对象索引ID对应
 
 ### v1.0.2
 

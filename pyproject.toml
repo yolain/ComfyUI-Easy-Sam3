@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-easy-sam3"
 description = "A ComfyUI custom node package for segment anything 3"
-version = "1.0.3"
+version = "1.0.4"
 license = {file = "LICENSE"}
 dependencies = ["timm>=1.0.17", "ftfy==6.1.1", "regex", "iopath>=0.1.10", "einops>=0.6.0", "decord>=0.6.0", "pycocotools>=2.0.10", "numpy>=1.26", "tqdm", "typing_extensions"]
 
