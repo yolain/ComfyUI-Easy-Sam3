@@ -379,11 +379,11 @@ class Sam3ImageSegmentation(io.ComfyNode):
                 # Handle empty results for this image
                 if masks is None or len(masks) == 0:
                     logger.warning(f"No masks detected for image {idx}, using empty mask")
-                    masks = torch.zeros(1, H, W)
+                    masks = torch.zeros(1, 1, H, W, device=device)
                     if boxes is None or len(boxes) == 0:
-                        boxes = torch.zeros(1, 4)
+                        boxes = torch.zeros(1, 4, device=device)
                     if scores is None or len(scores) == 0:
-                        scores = torch.zeros(1)
+                        scores = torch.zeros(1, device=device)
                 else:
                     # Sort by scores (highest confidence first)
                     if scores is not None and len(scores) > 0:
@@ -443,13 +443,12 @@ class Sam3ImageSegmentation(io.ComfyNode):
 
             output_masks = torch.stack(output_masks, dim=0)
             output_images = torch.stack(output_images, dim=0)
-            output_boxes = torch.stack(output_boxes, dim=0)
-            output_scores = torch.stack(output_scores, dim=0)
-            output_raw_masks = torch.stack(output_raw_masks, dim=0)
+            # output_boxes = torch.stack(output_boxes, dim=0)
+            # output_scores = torch.stack(output_scores, dim=0)
+            output_boxes_list = [box.tolist() for box in output_boxes]
+            output_scores_list = [score.tolist() for score in output_scores]
+            output_raw_masks = torch.cat(output_raw_masks, dim=0)
             logger.debug(f"Output masks shape: {output_masks.shape} (matches input images: {B})")
-
-            output_boxes_list = output_boxes.squeeze(0).cpu().tolist()
-            output_scores_list = output_scores.squeeze().cpu().tolist()
 
             # Clean up if not keeping model loaded
             if not keep_model_loaded:
