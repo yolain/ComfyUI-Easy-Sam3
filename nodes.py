@@ -443,13 +443,12 @@ class Sam3ImageSegmentation(io.ComfyNode):
 
             output_masks = torch.stack(output_masks, dim=0)
             output_images = torch.stack(output_images, dim=0)
-            output_boxes = torch.stack(output_boxes, dim=0)
-            output_scores = torch.stack(output_scores, dim=0)
-            output_raw_masks = torch.stack(output_raw_masks, dim=0)
+            # output_boxes = torch.stack(output_boxes, dim=0)
+            # output_scores = torch.stack(output_scores, dim=0)
+            output_boxes_list = [box.cpu().tolist() for box in output_boxes]
+            output_scores_list = [score.cpu().tolist() for score in output_scores]
+            output_raw_masks = torch.cat(output_raw_masks, dim=0)
             logger.debug(f"Output masks shape: {output_masks.shape} (matches input images: {B})")
-
-            output_boxes_list = output_boxes.squeeze(0).cpu().tolist()
-            output_scores_list = output_scores.squeeze().cpu().tolist()
 
             # Clean up if not keeping model loaded
             if not keep_model_loaded:
