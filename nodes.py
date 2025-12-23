@@ -611,10 +611,11 @@ class Sam3VideoSegmentation(io.ComfyNode):
             raise ValueError("Invalid SAM3 model. Please load a SAM3 model in 'video' mode")
 
         if frame_index > B - 1:
-            logger.info(f"Frame index {frame_index} is out of bounds, setting to last frame {B - 1}")
+            logger.info(f"Frame index {frame_index} is out of bounds, setting to last frame")
             frame_index = B - 1
-        if start_frame_index > B - 1:
-            start_frame_index = B - 1
+        if start_frame_index > B:
+            logger.info(f"Last Frame index {frame_index} is out of bounds, setting to last frame")
+            start_frame_index = B
 
         # Set video model config
         video_predictor.model.score_threshold_detection = score_threshold_detection
